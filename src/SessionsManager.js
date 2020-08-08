@@ -56,12 +56,44 @@ module.exports = class SessionsManager {
 
   startRound(gameCode) {
     const categoryList = this.gameHelper.getRandomCategoryList();
+    const letter = this.gameHelper.getRandomLetter();
 
-    console.log('start round: ', categoryList);
+    this.getGame(gameCode).activeRound = {
+      categoryList,
+      letter,
+    };
 
-    this.getHostSocket(gameCode).emit("start-round", { categoryList });
+    console.log("start round: ", categoryList, letter);
+
+    this.getHostSocket(gameCode).emit("start-round", { categoryList, letter });
     this.getPlayerSockets(gameCode).forEach((socket) =>
-      socket.emit("start-round", { categoryList })
+      socket.emit("start-round", { categoryList, letter })
     );
+  }
+
+  submitAnswers(gameCode, playerCode, playerName, answers) {
+    const { activeRound, players } = this.getGame(gameCode);
+    if (!activeRound.submissions) activeRound.submissions = {};
+    activeRound.submissions[playerCode] = {
+      playerCode,
+      playerName,
+      answers,
+    };
+    console.log("active round: ", activeRound);
+
+    this.getHostSocket(gameCode).emit('player-has-submitted', { playerName });
+
+    // Check if all players have submitted
+    const allPlayersHaveSubmitted = players.every((player) =>
+      activeRound.submissions.hasOwnProperty(player.playerCode)
+    );
+    if (allPlayersHaveSubmitted) {
+      this.getHostSocket(gameCode).emit("submissions-ready", {
+        activeRound
+      });
+      this.getPlayerSockets(gameCode).forEach((socket) =>
+        socket.emit("submissions-ready")
+      );
+    }
   }
 };

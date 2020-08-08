@@ -58,13 +58,12 @@ io.on('connect', socket => {
   })
 
   socket.on('reload-host', data => {
-    console.log('d', data);
     const { gameCode, hostCode } = data;
 
     // Confirm that the host code is correct
     const game = sessionsManager.getGame(gameCode);
     if (!game) {
-      console.error('Game not found', hostCode);
+      console.error('Game not found', gameCode);
       // TODO: send error down socket
       return;
     }
@@ -81,5 +80,74 @@ io.on('connect', socket => {
 
     // Send the game info back to the host
     socket.emit('reload-host-accepted', { players });
+  })
+
+  socket.on('reload-player', data => {
+    console.log('d', data);
+    const { gameCode, playerCode } = data;
+
+    // Confirm that the player is in the game
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    const player = game.players.find(player => player.playerCode === playerCode)
+    if (!player) {
+      console.error('Player code incorrect. gameCode, playerCode', gameCode, playerCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    // Replace the player socket
+    player.socket = socket;
+
+    const { isVip, playerName } = player;
+
+    // Send the game info back to the host
+    socket.emit('reload-player-accepted', { isVip, playerName });
+  })
+
+  socket.on('request-round-start', data => {
+    const { gameCode, hostCode } = data;
+
+    // TODO: improve abstraction, this is the same logic as above
+    // Confirm that the host code is correct
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    if (game.hostCode !== hostCode) {
+      console.error('Host code incorrect', hostCode, game.hostCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    sessionsManager.startRound(gameCode);
+  })
+
+  socket.on('send-answers', data => {
+    const { answers, playerCode, gameCode } = data;
+    console.log(answers);
+
+    // TODO: DRY this out
+    // Confirm that the player is in the game
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    const player = game.players.find(player => player.playerCode === playerCode)
+    if (!player) {
+      console.error('Player code incorrect. gameCode, playerCode', gameCode, playerCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    sessionsManager.submitAnswers(gameCode, playerCode, player.playerName, answers);
   })
 });
