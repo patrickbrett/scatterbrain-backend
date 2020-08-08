@@ -1,0 +1,19 @@
+{
+  "name": "scatterbrain-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/server.js"
+  },
+  "repository": "git@github.com:patrickbrett/scatterbrain-backend.git",
+  "author": "Patrick Brett <patrick@livebook.io>",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
