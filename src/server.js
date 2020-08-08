@@ -56,4 +56,30 @@ io.on('connect', socket => {
       socket.emit('game-started');
     })
   })
+
+  socket.on('reload-host', data => {
+    console.log('d', data);
+    const { gameCode, hostCode } = data;
+
+    // Confirm that the host code is correct
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', hostCode);
+      // TODO: send error down socket
+      return;
+    }
+    if (game.hostCode !== hostCode) {
+      console.error('Host code incorrect', hostCode, game.hostCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    // Replace the host socket
+    game.hostSocket = socket;
+
+    const players = game.players.map(({ playerName, isVip })=> ({ playerName, isVip }));
+
+    // Send the game info back to the host
+    socket.emit('reload-host-accepted', { players });
+  })
 });
