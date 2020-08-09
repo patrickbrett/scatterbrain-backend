@@ -33,7 +33,8 @@ module.exports = class SessionsManager {
     }
 
     const isVip = players.length === 0;
-    players.push({ playerCode, playerName, socket, isVip });
+    const score = 0;
+    players.push({ playerCode, playerName, socket, isVip, score });
 
     return { playerCode, isVip };
   }
@@ -78,7 +79,7 @@ module.exports = class SessionsManager {
       playerCode,
       playerName,
       answers,
-      marks: []
+      marks: {}
     };
     console.log("active round: ", activeRound);
 
@@ -116,17 +117,27 @@ module.exports = class SessionsManager {
 
   markAnswer(gameCode, playerCode, mark) {
     const game = this.getGame(gameCode);
+    const ownPlayerName = game.players.find(p => p.playerCode === playerCode).playerName
 
+    console.log('gars', game, game.activeRound, game.activeRound.submissions);
     const submission = Object.values(game.activeRound.submissions).find(({ playerName }) => playerName === mark.playerName);
 
     if (!submission.marks.hasOwnProperty(mark.questionIndex)) {
       submission.marks[mark.questionIndex] = {};
     }
 
-    submission.marks[mark.questionIndex][playerCode] = mark.isApproved;
+    submission.marks[mark.questionIndex][ownPlayerName] = mark.isApproved;
 
     this.getHostSocket(gameCode).emit("marked-answer", {
       submissions: game.activeRound.submissions
     });
+  }
+
+  updatePlayerScores(gameCode, players) {
+    const game = this.getGame(gameCode);
+
+    players.forEach(player => {
+      game.players.find(p => p.playerName === player.playerName).score = player.score;
+    })
   }
 };

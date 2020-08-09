@@ -76,7 +76,7 @@ io.on('connect', socket => {
     // Replace the host socket
     game.hostSocket = socket;
 
-    const players = game.players.map(({ playerName, isVip })=> ({ playerName, isVip }));
+    const players = game.players.map(({ playerName, isVip, score })=> ({ playerName, isVip, score }));
 
     // Send the game info back to the host
     socket.emit('reload-host-accepted', { players });
@@ -103,14 +103,14 @@ io.on('connect', socket => {
     // Replace the player socket
     player.socket = socket;
 
-    const { isVip, playerName } = player;
+    const { isVip, playerName, score } = player;
 
     // Send the game info back to the host
-    socket.emit('reload-player-accepted', { isVip, playerName });
+    socket.emit('reload-player-accepted', { isVip, playerName, score });
   })
 
   socket.on('request-round-start', data => {
-    const { gameCode, hostCode } = data;
+    const { gameCode, hostCode, players } = data;
 
     // TODO: improve abstraction, this is the same logic as above
     // Confirm that the host code is correct
@@ -126,6 +126,7 @@ io.on('connect', socket => {
       return;
     }
 
+    sessionsManager.updatePlayerScores(gameCode, players);
     sessionsManager.startRound(gameCode);
   })
 
@@ -188,6 +189,7 @@ io.on('connect', socket => {
       return;
     }
 
+    console.log('host: review-next')
     sessionsManager.reviewNext(gameCode, currentIndex);
   })
 
