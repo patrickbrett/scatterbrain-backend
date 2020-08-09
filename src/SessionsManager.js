@@ -81,7 +81,7 @@ module.exports = class SessionsManager {
     };
     console.log("active round: ", activeRound);
 
-    this.getHostSocket(gameCode).emit('player-has-submitted', { playerName });
+    this.getHostSocket(gameCode).emit("player-has-submitted", { playerName });
 
     // Check if all players have submitted
     const allPlayersHaveSubmitted = players.every((player) =>
@@ -89,11 +89,19 @@ module.exports = class SessionsManager {
     );
     if (allPlayersHaveSubmitted) {
       this.getHostSocket(gameCode).emit("submissions-ready", {
-        activeRound
+        activeRound,
       });
       this.getPlayerSockets(gameCode).forEach((socket) =>
         socket.emit("submissions-ready")
       );
     }
+  }
+
+  roundTimesUp(gameCode) {
+    console.log('sending time is up to players!')
+    
+    this.getPlayerSockets(gameCode).forEach((socket) =>
+      socket.emit("times-up") // force player clients to submit
+    );
   }
 };

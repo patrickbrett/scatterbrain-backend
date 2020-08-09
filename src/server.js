@@ -150,4 +150,24 @@ io.on('connect', socket => {
 
     sessionsManager.submitAnswers(gameCode, playerCode, player.playerName, answers);
   })
+
+  socket.on("round-times-up", data => {
+    const { gameCode, hostCode } = data;
+
+    // TODO: improve abstraction, this is the same logic as above
+    // Confirm that the host code is correct
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    if (game.hostCode !== hostCode) {
+      console.error('Host code incorrect', hostCode, game.hostCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    sessionsManager.roundTimesUp(gameCode);
+  })
 });
