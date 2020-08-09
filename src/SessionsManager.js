@@ -78,6 +78,7 @@ module.exports = class SessionsManager {
       playerCode,
       playerName,
       answers,
+      marks: []
     };
     console.log("active round: ", activeRound);
 
@@ -92,16 +93,40 @@ module.exports = class SessionsManager {
         activeRound,
       });
       this.getPlayerSockets(gameCode).forEach((socket) =>
-        socket.emit("submissions-ready")
+        socket.emit("submissions-ready", { activeRound })
       );
     }
   }
 
   roundTimesUp(gameCode) {
     console.log('sending time is up to players!')
-    
+
     this.getPlayerSockets(gameCode).forEach((socket) =>
       socket.emit("times-up") // force player clients to submit
     );
+  }
+
+  reviewNext(gameCode, currentIndex) {
+    console.log('sending review next to players!')
+
+    this.getPlayerSockets(gameCode).forEach((socket) =>
+      socket.emit("review-next-toplayer", { currentIndex })
+    );
+  }
+
+  markAnswer(gameCode, playerCode, mark) {
+    const game = this.getGame(gameCode);
+
+    const submission = Object.values(game.activeRound.submissions).find(({ playerName }) => playerName === mark.playerName);
+
+    if (!submission.marks.hasOwnProperty(mark.questionIndex)) {
+      submission.marks[mark.questionIndex] = {};
+    }
+
+    submission.marks[mark.questionIndex][playerCode] = mark.isApproved;
+
+    this.getHostSocket(gameCode).emit("marked-answer", {
+      submissions: game.activeRound.submissions
+    });
   }
 };

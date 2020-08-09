@@ -170,4 +170,45 @@ io.on('connect', socket => {
 
     sessionsManager.roundTimesUp(gameCode);
   })
+
+  socket.on("review-next", data => {
+    const { gameCode, hostCode, currentIndex } = data;
+
+    // TODO: improve abstraction, this is the same logic as above
+    // Confirm that the host code is correct
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    if (game.hostCode !== hostCode) {
+      console.error('Host code incorrect', hostCode, game.hostCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    sessionsManager.reviewNext(gameCode, currentIndex);
+  })
+
+  socket.on('mark-answer', data => {
+    const { mark, playerCode, gameCode } = data;
+
+    // TODO: DRY this out
+    // Confirm that the player is in the game
+    const game = sessionsManager.getGame(gameCode);
+    if (!game) {
+      console.error('Game not found', gameCode);
+      // TODO: send error down socket
+      return;
+    }
+    const player = game.players.find(player => player.playerCode === playerCode)
+    if (!player) {
+      console.error('Player code incorrect. gameCode, playerCode', gameCode, playerCode);
+      // TODO: send error down socket
+      return;
+    }
+
+    sessionsManager.markAnswer(gameCode, playerCode, mark);
+  })
 });
