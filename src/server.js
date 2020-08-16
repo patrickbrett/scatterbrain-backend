@@ -1,18 +1,23 @@
-// const express = require('express');
-// const cors = require('cors');
-// const app = express();
-// app.use(express.json());
-// app.use(cors());
-const APP_PORT = 5050;
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const http = require('http').createServer(app);
+app.use(express.json());
+app.use(cors());
 const GameHelper = require('./GameHelper');
 const SessionsManager = require('./SessionsManager');
 const gameHelper = new GameHelper();
 const sessionsManager = new SessionsManager(gameHelper);
 
-// app.listen(APP_PORT);
-// console.log('listening on port ' + APP_PORT);
+app.get('/health-check', (req, res) => {
+  console.log("Health check succeeded")
+  res.status(200);
+  res.send('All good in the hood!')
+})
 
-const io = require('socket.io')(3000);
+http.listen(80, () => console.log('listening on port 80'));
+
+const io = require('socket.io')(http);
 
 io.on('connect', socket => {
   socket.on('create-game', () => {
