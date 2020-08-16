@@ -12,6 +12,7 @@ const sessionsManager = new SessionsManager(gameHelper);
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://scatterbrain.tv");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 })
 
 app.get('/health-check', (req, res) => {
