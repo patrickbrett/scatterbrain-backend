@@ -41,7 +41,7 @@ module.exports = class ScattegoriesHelper {
           "Words relating to tennis",
           "Beer brands",
           "Types of cheese",
-          "Words that begin with 'mis'",
+          "Fruits",
           "Australian cities",
           "Nursery rhymes",
           "Insects",
@@ -63,11 +63,102 @@ module.exports = class ScattegoriesHelper {
           "Words with double letters"
         ]
       },
+      {
+        name: "List 5",
+        categories: [
+          "US states",
+          "Toys",
+          "Things that are sharp",
+          "Australian bands",
+          "Apple products",
+          "Interjections",
+          "Foreign-language movies",
+          "2010s pop songs",
+          "Things you find in soup",
+          "Vegetables"
+        ]
+      },
+      {
+        name: "List 6",
+        categories: [
+          "Nationalities",
+          "Adverbs",
+          "Things that don't move",
+          "Rock bands",
+          "Colours",
+          "Things found in a kitchen",
+          "Pizza toppings",
+          "Things you take camping",
+          "US presidents",
+          "Famous DJs"
+        ]
+      },
+      {
+        name: "List 7",
+        categories: [
+          "Foreign words used in English",
+          "Words relating to construction",
+          "Things you find in a car",
+          "Things that are spicy",
+          "Six letter words",
+          "Gifts",
+          "Villains",
+          "Breakfast foods",
+          "Tools",
+          "Things you do at work",
+        ]
+      }, {
+        name: "List 8",
+        categories: ["Things that are cold",
+        "School subjects",
+        "Things that are sticky",
+        "Alcoholic drinks",
+        "Excuses for being late",
+        "Ice cream flavours",
+        "Crimes",
+        "Words ending in 'ing'",
+        "Things to do at a party",
+        "Things that can get you fired",]
+      }, {
+        name: "List 9",
+        categories: [
+          "Famous duos and trios",
+          "Reasons to make a phone call",
+          "Board games",
+          "Things that make you smile",
+          "Reptiles or amphibians",
+          "Cartoon characters",
+          "Tourist attractions",
+          "Things that are square",
+          "Video games",
+          "Things that have wheels",
+        ]
+      }, {
+        name: "List 10",
+        categories: [
+          "Animal noises",
+          "Occupations",
+        "Household chores",
+        "Insects",
+        "Titles people can have",
+        "Flowers",
+        "Historic events",
+        "Types of weather",
+        "Reasons to call the police",
+        "Authors",
+        ]
+      }
     ]
   }
 
   getRandomLetter() {
-    return String.fromCharCode(this.getRandomInt(65, 90));
+    // excludes: Q, U, V, X, Y, Z
+    // in the most inelegant way possible :)
+    let str = 'Q';
+    while (['Q', 'U', 'V', 'X', 'Y', 'Z'].includes(str)) {
+      str = String.fromCharCode(this.getRandomInt(65, 90));
+    }
+    return str;
   }
 
   getRandomCategoryList() {
