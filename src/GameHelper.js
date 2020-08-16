@@ -45,7 +45,7 @@ module.exports = class ScattegoriesHelper {
           "Australian cities",
           "Nursery rhymes",
           "Insects",
-          "Things you would find in a park"
+          "Things you find in a park"
         ]
       },
       {
