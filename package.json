@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js",
-    "start:dev": "nodemon src/server.js"
+    "start": "export NODE_SERV_ENV=local && node src/server.js",
+    "start:dev": "export NODE_SERV_ENV=local && nodemon src/server.js",
+    "start:prod": "export NODE_SERV_ENV=prod && yarn forever start src/server.js"
   },
   "repository": "git@github.com:patrickbrett/scatterbrain-backend.git",
   "author": "Patrick Brett <patrick@livebook.io>",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "forever": "^3.0.0",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
