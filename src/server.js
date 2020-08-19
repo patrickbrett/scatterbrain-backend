@@ -230,10 +230,26 @@ io.on('connect', (socket) => {
 	});
 
 	socket.on('disconnect', () => {
-		const player = sessionsManager.getPlayerBySocketId(socket.id);
+    const sessionForHost = sessionsManager.getHostBySocketId(socket.id);
 
-    console.log('User disconnected', player);
+    console.log('trying...', sessionForHost, socket.id)
     
-    // TODO: if they were the host, clean up the game session
+    if (sessionForHost) {
+      const { gameCode } = sessionForHost;
+
+      console.log(`Host of game ${gameCode} disconnected.`)
+
+      sessionsManager.getPlayerSockets(gameCode).forEach(socket => {
+        socket.emit('host-left');
+      })
+    
+      // TODO: if they were the host, clean up the game session
+    } else {
+
+
+      const player = sessionsManager.getPlayerBySocketId(socket.id);
+
+      console.log('User disconnected', player);
+    }
 	});
 });

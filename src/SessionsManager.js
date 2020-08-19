@@ -39,21 +39,27 @@ module.exports = class SessionsManager {
 		return { playerCode, isVip };
 	}
 
-	getPlayerBySocketId(socketId) {
-		return this.sessions && this.sessions.length && this.sessions.map((session) => {
-			return session.players && session.players.map((player) => {
-				if (player.socketId === socketId) {
-					return player;
-				}
-			});
-		});
+	getHostBySocketId = (socketId) => {
+		return (
+			this.sessions && this.sessions.length && this.sessions.find((session) => session.hostSocket.id === socketId)
+		);
 	}
 
-	getGame(gameCode) {
+	getPlayerBySocketId = (socketId) => {
+		return (
+			this.sessions &&
+			this.sessions.length &&
+			this.sessions.map((session) => {
+				return session.players && session.players.find((player) => player.socketId === socketId);
+			})
+		);
+	}
+
+	getGame = (gameCode) => {
 		return this.sessions[gameCode];
 	}
 
-	getHostSocket(gameCode) {
+	getHostSocket = (gameCode) => {
 		return this.sessions[gameCode].hostSocket;
 	}
 
