@@ -224,4 +224,10 @@ io.on('connect', socket => {
 
     sessionsManager.markAnswer(gameCode, playerCode, mark);
   })
+
+  socket.on('disconnect', () => {
+    const player = sessionsManager.getPlayerBySocketId(socket.id)
+
+    console.log('User disconnected', player)
+  })
 });

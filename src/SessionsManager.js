@@ -1,143 +1,149 @@
 module.exports = class SessionsManager {
-  sessions;
-  gameHelper;
+	sessions;
+	gameHelper;
 
-  constructor(gameHelper) {
-    this.sessions = {};
-    this.gameHelper = gameHelper;
-  }
+	constructor(gameHelper) {
+		this.sessions = {};
+		this.gameHelper = gameHelper;
+	}
 
-  createGame(gameCode, hostCode, hostSocket) {
-    this.sessions[gameCode] = {
-      gameCode,
-      hostCode,
-      hostSocket,
-      players: [],
-    };
+	createGame(gameCode, hostCode, hostSocket) {
+		this.sessions[gameCode] = {
+			gameCode,
+			hostCode,
+			hostSocket,
+			players: [],
+		};
 
-    console.log("Game created! gameCode, hostCode", gameCode, hostCode);
-  }
+		console.log('Game created! gameCode, hostCode', gameCode, hostCode);
+	}
 
-  joinGame(gameCode, playerName, socket) {
-    const playerCode = this.gameHelper.generatePlayerCode();
-    if (!this.sessions[gameCode]) {
-      throw new Error(
-        'Session with game code "' + gameCode + '" does not exist'
-      );
-    }
-    const { players } = this.sessions[gameCode];
-    if (players.some((player) => player.playerName === playerName)) {
-      throw new Error(
-        `Player with name "${playerName}" is already in this game`
-      );
-    }
+	joinGame(gameCode, playerName, socket) {
+		const playerCode = this.gameHelper.generatePlayerCode();
+		if (!this.sessions[gameCode]) {
+			throw new Error('Session with game code "' + gameCode + '" does not exist');
+		}
+		const { players } = this.sessions[gameCode];
+		if (players.some((player) => player.playerName === playerName)) {
+			throw new Error(`Player with name "${playerName}" is already in this game`);
+		}
 
-    const isVip = players.length === 0;
-    const score = 0;
-    players.push({ playerCode, playerName, socket, isVip, score });
+		if (playerName.length < 3 || playerName.length > 20) {
+			throw new Error(`Player name must be between 3 and 20 chars - "${playerName}" is invalid`);
+		}
 
-    return { playerCode, isVip };
-  }
+		const isVip = players.length === 0;
+		const score = 0;
+		players.push({ playerCode, playerName, socket, isVip, score });
 
-  getGame(gameCode) {
-    return this.sessions[gameCode];
-  }
+		return { playerCode, isVip };
+	}
 
-  getHostSocket(gameCode) {
-    return this.sessions[gameCode].hostSocket;
-  }
+	getPlayerBySocketId(socketId) {
+		return this.sessions.map((session) => {
+			return session.players.map((player) => {
+				if (player.socketId === socketId) {
+					return player;
+				}
+			});
+		});
+	}
 
-  getVip(gameCode) {
-    return this.sessions[gameCode].players.find((p) => p.isVip);
-  }
+	getGame(gameCode) {
+		return this.sessions[gameCode];
+	}
 
-  getPlayerSockets(gameCode) {
-    return this.sessions[gameCode].players.map((p) => p.socket);
-  }
+	getHostSocket(gameCode) {
+		return this.sessions[gameCode].hostSocket;
+	}
 
-  startRound(gameCode) {
-    const categoryList = this.gameHelper.getRandomCategoryList();
-    const letter = this.gameHelper.getRandomLetter();
+	getVip(gameCode) {
+		return this.sessions[gameCode].players.find((p) => p.isVip);
+	}
 
-    this.getGame(gameCode).activeRound = {
-      categoryList,
-      letter,
-    };
+	getPlayerSockets(gameCode) {
+		return this.sessions[gameCode].players.map((p) => p.socket);
+	}
 
-    console.log("start round: ", categoryList, letter);
+	startRound(gameCode) {
+		const categoryList = this.gameHelper.getRandomCategoryList();
+		const letter = this.gameHelper.getRandomLetter();
 
-    this.getHostSocket(gameCode).emit("start-round", { categoryList, letter });
-    this.getPlayerSockets(gameCode).forEach((socket) =>
-      socket.emit("start-round", { categoryList, letter })
-    );
-  }
+		this.getGame(gameCode).activeRound = {
+			categoryList,
+			letter,
+		};
 
-  submitAnswers(gameCode, playerCode, playerName, answers) {
-    const { activeRound, players } = this.getGame(gameCode);
-    if (!activeRound.submissions) activeRound.submissions = {};
-    activeRound.submissions[playerCode] = {
-      playerCode,
-      playerName,
-      answers,
-      marks: {}
-    };
-    console.log("active round: ", activeRound);
+		console.log('start round: ', categoryList, letter);
 
-    this.getHostSocket(gameCode).emit("player-has-submitted", { playerName });
+		this.getHostSocket(gameCode).emit('start-round', { categoryList, letter });
+		this.getPlayerSockets(gameCode).forEach((socket) => socket.emit('start-round', { categoryList, letter }));
+	}
 
-    // Check if all players have submitted
-    const allPlayersHaveSubmitted = players.every((player) =>
-      activeRound.submissions.hasOwnProperty(player.playerCode)
-    );
-    if (allPlayersHaveSubmitted) {
-      this.getHostSocket(gameCode).emit("submissions-ready", {
-        activeRound,
-      });
-      this.getPlayerSockets(gameCode).forEach((socket) =>
-        socket.emit("submissions-ready", { activeRound })
-      );
-    }
-  }
+	submitAnswers(gameCode, playerCode, playerName, answers) {
+		const { activeRound, players } = this.getGame(gameCode);
+		if (!activeRound.submissions) activeRound.submissions = {};
+		activeRound.submissions[playerCode] = {
+			playerCode,
+			playerName,
+			answers,
+			marks: {},
+		};
+		console.log('active round: ', activeRound);
 
-  roundTimesUp(gameCode) {
-    console.log('sending time is up to players!')
+		this.getHostSocket(gameCode).emit('player-has-submitted', { playerName });
 
-    this.getPlayerSockets(gameCode).forEach((socket) =>
-      socket.emit("times-up") // force player clients to submit
-    );
-  }
+		// Check if all players have submitted
+		const allPlayersHaveSubmitted = players.every((player) =>
+			activeRound.submissions.hasOwnProperty(player.playerCode)
+		);
+		if (allPlayersHaveSubmitted) {
+			this.getHostSocket(gameCode).emit('submissions-ready', {
+				activeRound,
+			});
+			this.getPlayerSockets(gameCode).forEach((socket) => socket.emit('submissions-ready', { activeRound }));
+		}
+	}
 
-  reviewNext(gameCode, currentIndex) {
-    console.log('sending review next to players!')
+	roundTimesUp(gameCode) {
+		console.log('sending time is up to players!');
 
-    this.getPlayerSockets(gameCode).forEach((socket) =>
-      socket.emit("review-next-toplayer", { currentIndex })
-    );
-  }
+		this.getPlayerSockets(gameCode).forEach(
+			(socket) => socket.emit('times-up') // force player clients to submit
+		);
+	}
 
-  markAnswer(gameCode, playerCode, mark) {
-    const game = this.getGame(gameCode);
-    const ownPlayerName = game.players.find(p => p.playerCode === playerCode).playerName
+	reviewNext(gameCode, currentIndex) {
+		console.log('sending review next to players!');
 
-    console.log('gars', game, game.activeRound, game.activeRound.submissions);
-    const submission = Object.values(game.activeRound.submissions).find(({ playerName }) => playerName === mark.playerName);
+		this.getPlayerSockets(gameCode).forEach((socket) => socket.emit('review-next-toplayer', { currentIndex }));
+	}
 
-    if (!submission.marks.hasOwnProperty(mark.questionIndex)) {
-      submission.marks[mark.questionIndex] = {};
-    }
+	markAnswer(gameCode, playerCode, mark) {
+		const game = this.getGame(gameCode);
+		const ownPlayerName = game.players.find((p) => p.playerCode === playerCode).playerName;
 
-    submission.marks[mark.questionIndex][ownPlayerName] = mark.isApproved;
+		console.log('gars', game, game.activeRound, game.activeRound.submissions);
+		const submission = Object.values(game.activeRound.submissions).find(
+			({ playerName }) => playerName === mark.playerName
+		);
 
-    this.getHostSocket(gameCode).emit("marked-answer", {
-      submissions: game.activeRound.submissions
-    });
-  }
+		if (!submission.marks.hasOwnProperty(mark.questionIndex)) {
+			submission.marks[mark.questionIndex] = {};
+		}
 
-  updatePlayerScores(gameCode, players) {
-    const game = this.getGame(gameCode);
+		submission.marks[mark.questionIndex][ownPlayerName] = mark.isApproved;
 
-    players.forEach(player => {
-      game.players.find(p => p.playerName === player.playerName).score = player.score;
-    })
-  }
+		this.getHostSocket(gameCode).emit('marked-answer', {
+			submissions: game.activeRound.submissions,
+		});
+	}
+
+	updatePlayerScores(gameCode, players) {
+		const game = this.getGame(gameCode);
+
+		players.forEach((player) => {
+			game.players.find((p) => p.playerName === player.playerName).score = player.score;
+		});
+	}
 };
