@@ -40,8 +40,8 @@ module.exports = class SessionsManager {
 	}
 
 	getPlayerBySocketId(socketId) {
-		return this.sessions.map((session) => {
-			return session.players.map((player) => {
+		return this.sessions && this.sessions.length && this.sessions.map((session) => {
+			return session.players && session.players.map((player) => {
 				if (player.socketId === socketId) {
 					return player;
 				}

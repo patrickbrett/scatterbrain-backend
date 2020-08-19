@@ -68,7 +68,7 @@ io.on('connect', (socket) => {
 		const hostSocket = sessionsManager.getHostSocket(gameCode);
 		const playerSockets = sessionsManager.getPlayerSockets(gameCode);
 		[hostSocket, ...playerSockets].forEach((socket) => {
-			socket.emit('game-started');
+			setTimeout(() => socket.emit('game-started'));
 		});
 	});
 
@@ -232,6 +232,8 @@ io.on('connect', (socket) => {
 	socket.on('disconnect', () => {
 		const player = sessionsManager.getPlayerBySocketId(socket.id);
 
-		console.log('User disconnected', player);
+    console.log('User disconnected', player);
+    
+    // TODO: if they were the host, clean up the game session
 	});
 });
